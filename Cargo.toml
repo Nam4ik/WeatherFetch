@@ -7,5 +7,6 @@ edition = "2021"
 termimage = "1.2"
 reqwest   = "0.12.15"
 chrono    = "0.4"
-serde     = ""
-tokio     = ""
+serde     = "1.0"
+clap      = "4.0"
+
