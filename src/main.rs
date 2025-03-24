@@ -6,7 +6,7 @@ use clap::{Arg, Command};
 use termimage::{Image};
 
 mod parser;
-mod configmanagerж
+mod configmanager;
 
 use parser::{parse_weather, Weather};
 use configmanager::{Config, handle_config};
