@@ -6,9 +6,8 @@ use serde::{Serialize, Deserealize};
 use std::net::{IpAddr, SocketAddr, UpdSocket};
 use tokio;
 
-static ErrBuff: String = reqwest::Error;
 
-use serde::{Deserialize, Serialize};
+static ErrBuff: String = reqwest::Error;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WeatherData {
