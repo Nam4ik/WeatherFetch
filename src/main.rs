@@ -1,19 +1,5 @@
-//In developing 🏗️
-
-use serde::{Serialize, Deserialize};
-use std::{env, path::Path};
 use clap::{Arg, Command};
-use termimage::{Image};
-
-mod parser;
-mod configmanager;
-
-use parser::{parse_weather, Weather};
-use configmanager::{Config, handle_config};
-
-f// main.rs
-use clap::{Arg, Command};
-use termimage::Image;
+use termimage; 
 
 mod configmanager;
 mod parser;
@@ -24,13 +10,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("WeatherFetch")
         .version("0.1")
         .author("Borisov Alexey <arcanetmodl@gmail.com>")
-        .about("Weather fetch like fastfetch with image and ASCII art support")
+        .about("Weather fetch with image and ASCII art support")
         .arg(Arg::new("image").short('i').long("image").value_name("PATH"))
-        .arg(Arg::new("exclude")
-            .short('e')
-            .long("exclude")
-            .value_name("TYPE")
-            .possible_values(["current", "minutely", "hourly", "daily", "alerts"]))
+        .arg(Arg::new("exclude").short('e').long("exclude").value_name("TYPE")
+        .value_parser(["current", "minutely", "hourly", "daily", "alerts"]))
         .arg(Arg::new("help").short('h').long("help"))
         .arg(Arg::new("lat").short('t').long("lat").value_name("LATITUDE"))
         .arg(Arg::new("lon").short('n').long("lon").value_name("LONGITUDE"))
