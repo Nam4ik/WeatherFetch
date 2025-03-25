@@ -1,14 +1,15 @@
-mod condfigmanager
-
 use reqwest::{Error, Client, get};
 use chrono::{DateTime, Utc, prelude::*};
 use serde::{Serialize, Deserealize};
 use std::net::{IpAddr, SocketAddr, UpdSocket};
-use tokio;
 
+mod configmanager;
+
+use configmanager::*;
 
 static ErrBuff: String = reqwest::Error;
 
+//API answer struct`s 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WeatherData {
     pub lat: f64,
@@ -124,17 +125,22 @@ pub struct Alert {
     pub description: String,
     pub tags: Vec<String>,
 }
-:qa
 
 
-:q
 
-async fn get_location(let ip: String) -> Reslut<(), >{   
-  let ip: String = reqwest::get("https://api.ipify.org").await?.text.await?;
+
+
+pub fn get_location(let ip: String) -> Reslut<(), >{   
+    //Get the lat and lon for API call 
+    if configmanager::Config.lat.is_empty() || configmanager::Config.lon.is_empty(){
+        println!("No coordinates in configuration file or conf not founded.");
+        println!("HINT: Try create ~/.config/WeatherFetch/Config.toml");
+        println!("HINT: And add `lat(<int>, <int>)`, `lon(<int>, <int>)`.");
+        println!("HINT: To get more info check https://openweathermap.org/api/one-call-3")
+    }
 } 
 
 
-#[tokio::main]
 async pub fn parse_wheather() -> Result<(), Error>{
 
 }
