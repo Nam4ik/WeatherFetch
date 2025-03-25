@@ -130,17 +130,24 @@ pub struct Alert {
 
 
 
-pub fn get_location(let ip: String) -> Reslut<(), >{   
+pub fn get_location(let coords_args: bool, config: &Config) -> Reslut<(), >{   
     //Get the lat and lon for API call 
-    if configmanager::Config.lat.is_empty() || configmanager::Config.lon.is_empty(){
+    configmanager::handle_config();
+    if configmanager::Config.lat.is_empty() || configmanager::Config.lon.is_empty() && !coords_args{
         println!("No coordinates in configuration file or conf not founded.");
         println!("HINT: Try create ~/.config/WeatherFetch/Config.toml");
-        println!("HINT: And add `lat(<int>, <int>)`, `lon(<int>, <int>)`.");
+        println!("HINT: And add `lat(<int>)`, `lon(<int>)`.");
         println!("HINT: To get more info check https://openweathermap.org/api/one-call-3")
+        
+        Err("No coordinates in config or args.".into())
+    } else {
+        Ok(())
     }
 } 
 
 
-async pub fn parse_wheather() -> Result<(), Error>{
 
+pub async fn parse_weather(config: &Config) -> Result<(), reqwest::Error> {
+    
+    Ok(())
 }
