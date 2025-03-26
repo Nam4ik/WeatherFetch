@@ -138,6 +138,12 @@ pub fn get_location(coords_args: bool) -> Result<(), BoxedError> {
     .clone();
 
     if (config.lat == 0.0 || config.lon == 0.0) && !coords_args {
+        
+        println!("No coordinates in configuration file or conf not founded.");
+        println!("HINT: Try create ~/.config/WeatherFetch/Config.toml");
+        println!("HINT: And add `lat(<float>)`, `lon(<float>)`.");
+        println!("HINT: To get more info check https://openweathermap.org/api/one-call-3");
+        
         Err("Invalid coordinates in config".into())
     } else {
         Ok(())
