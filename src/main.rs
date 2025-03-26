@@ -4,13 +4,13 @@ extern crate image;
 use clap::{Arg, Command}; 
 use termimage::{Options};
 
-
 mod configmanager;
 mod parser;
 
 use crate::configmanager::{Config, handle_config};
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    let config = Config::load()?;
     let matches = Command::new("WeatherFetch")
         .version("0.1")
         .author("Borisov Alexey <arcanetmodl@gmail.com>")
@@ -24,19 +24,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_matches();
 
         if matches.contains_id("help") {
-            println!("Usage: ...");
+            println!("Usage:");
+            println!("VALUES");
+            println!("--img=,  -i=  image, takees a path to .jpg/.png");
+            println!("--lat=,  -t=, coordinates: takes f64.");
+            println!("--lon=,  -n=, coordinates: takes f64");
+            println!("--cfg=,  -c=, takes a path to Config.toml");
+            println!("--exclude=, -e=, takes exlude type. See the API docs");
+            println!("FUNCTIONS");
+            println!("--gen-conf, -g, generating standart config");
+            println!("--alerts, -a, show alerts");
+    
             return Ok(());
         }
     
-    if let Some(img_path) = matches.get_one::<String>("image") {
-        let _img = Image::from_path(img_path)?;
-    }
+        if let Some(img_path) = matches.get_one::<String>("image") {
+            let _img = image::open(img_path)?;
+        }
 
-    let config = Config::load()?;
+
     handle_config(&config)?;
 
 
-    let opts = Options::parse();
+    let _opts = Options::parse(); // Prefix with underscore if not used
   /*  
     if !opts {
         opts = configmanager::Config::load();

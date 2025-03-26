@@ -2046,6 +2046,7 @@ dependencies = [
  "clap 4.5.32",
  "dirs",
  "image 0.24.9",
+ "once_cell",
  "reqwest",
  "serde",
  "termimage",
