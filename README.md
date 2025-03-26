@@ -18,11 +18,12 @@ This is my pet project, but I think someone might like it. I am the sole develop
 
 <h2 align="center"> Tech details 🏗️</h2>
 
-- Uses the https://openweathermap.org/api/one-call-3, without coordinate args or in config can't work.
-- Supports the images in terminal
-- Supports many timings like Daily, Hourly, Minutely, Current
-- Support alerts
-- If internet broken load the info from cache
+- Uses the https://openweathermap.org/api/one-call-3 API, which requires coordinates or configuration to function properly.
+- Displays images in the terminal.
+- Provides various time intervals, including daily, hourly, and minute-by-minute updates, as well as current information.
+- Can send alerts.
+- In case of internet connectivity issues, it can download information from a cache.
+
 
 <h2 align="center"> Using ⛽️</h2>
 
