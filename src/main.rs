@@ -1,10 +1,14 @@
-use clap::{Arg, Command};
-use termimage; 
+extern crate image;
+
+
+use clap::{Arg, Command}; 
+use termimage::{Options};
+
 
 mod configmanager;
 mod parser;
 
-use configmanager::{Config, handle_config};
+use crate::configmanager::{Config, handle_config};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = Command::new("WeatherFetch")
@@ -19,17 +23,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .arg(Arg::new("lon").short('n').long("lon").value_name("LONGITUDE"))
         .get_matches();
 
-    if matches.contains_id("help") {
-        println!("Usage: ...");
-        return Ok(());
-    }
-
+        if matches.contains_id("help") {
+            println!("Usage: ...");
+            return Ok(());
+        }
+    
     if let Some(img_path) = matches.get_one::<String>("image") {
         let _img = Image::from_path(img_path)?;
     }
 
     let config = Config::load()?;
     handle_config(&config)?;
+
+
+    let opts = Options::parse();
+  /*  
+    if !opts {
+        opts = configmanager::Config::load();
+    } 
+
+    let format = ops::guess_format(&opts.image)?;
+    let img = ops::load_image(&opts.image, format)?;
+
+  */
 
     Ok(())
 }

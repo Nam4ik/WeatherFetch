@@ -17,6 +17,14 @@ pub struct Config {
     pub snowy: String,
 }
 
+pub fn handle_config(_config: &Config) -> Result<(), Box<dyn std::error::Error>> {
+    Ok(())
+}
+
+pub fn gen_standard_conf() {
+    // TODO: Implement
+}
+
 impl Config {
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let mut path = home_dir().ok_or("Home directory not found")?;
@@ -28,10 +36,3 @@ impl Config {
     }
 }
 
-pub fn handle_config(_config: &Config) -> Result<(), Box<dyn std::error::Error>> {
-    Ok(())
-}
-
-pub fn gen_standard_conf() {
-    // TODO: Implement
-}

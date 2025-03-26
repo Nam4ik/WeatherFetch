@@ -2,7 +2,7 @@ use reqwest::{Error, Client, get};
 use chrono::{DateTime, Utc, prelude::*};
 use serde::{Serialize, Deserialize};
 
-use crate::configmanager::{Config};
+use crate::configmanager;
 
 //API answer struct`s 
 #[derive(Debug, Serialize, Deserialize)]
@@ -125,10 +125,10 @@ pub struct Alert {
 
 
 
-pub fn get_location(let coords_args: bool, config: &Config) -> Result<(), String>{   
+pub fn get_location(coords_args: bool) -> Result<(), String>{   
     //Get the lat and lon for API call 
-    configmanager::handle_config();
-    if Config.lat.is_empty() || Config.lon.is_empty() && !coords_args{
+    let conf: Option<configmanager::load()>;
+    if conf.lat.is_empty() || conf.lon.is_empty() && !coords_args{
         println!("No coordinates in configuration file or conf not founded.");
         println!("HINT: Try create ~/.config/WeatherFetch/Config.toml");
         println!("HINT: And add `lat(<int>)`, `lon(<int>)`.");
