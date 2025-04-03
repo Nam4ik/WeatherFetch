@@ -123,7 +123,7 @@ pub struct Alert {
     pub tags: Vec<String>,
 }
 
-type BoxedError = Box<dyn std::error::Error + Send + Sync>;
+//type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
  
 const CONF: Lazy<Result<Config, Box<dyn std::error::Error + Send + Sync>>> = Lazy::new(|| {
