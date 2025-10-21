@@ -1,0 +1,5 @@
+arts {
+  weather: {
+    cold = ""
+  };
+}

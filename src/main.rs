@@ -35,10 +35,17 @@ extern crate image;
 use clap::{Arg, Command}; 
 use termimage::{Options};
 
-mod configmanager;
 mod parser;
+use parser::{get_config, Config}; 
 
-use crate::configmanager::{Config, handle_config};
+// use crate::configmanager::{Config, handle_config};
+
+fn process_config() -> Result<Config, Box<dyn std::error::Error>> {
+    get_config(); 
+
+    Ok(Config::load()?)
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = Config::load()?;
