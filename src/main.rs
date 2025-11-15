@@ -29,40 +29,137 @@ SOFTWARE.
 
 */
 
-extern crate image;
+use std::fs;
+use std::path::PathBuf;
 
-
-use std::os::linux::process;
-
-use clap::{Cli, Command, Subcommand}; 
-use termimage::{Options};
+use clap::{Parser, Subcommand}; 
+use termimage::Options;
 
 mod parser;
-use parser::{get_config, Config}; 
+mod shared;
 
-// use crate::configmanager::{Config, handle_config};
+use parser::{get_config, parse_weather, Config}; 
+use shared::WeatherData; 
+
+#[derive(Parser)]
+#[command(name = "wfetch")]
+#[command(about = "Weather fetch tool")]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
 #[derive(Subcommand)]
 enum Commands {
-  Config, 
-  Fetch,
-  Clean, 
-  Help,
-  Today, 
-  Tomorrow, 
-  RebuildCache 
+    Config, 
+    Fetch,
+    Clean, 
+    Help,
+    Today, 
+    Tomorrow, 
+    RebuildCache,
 }
-fn process_config() -> Result<Config, Box<dyn std::error::Error>> {
-    let cfg: Config = get_config(); 
 
-    Ok(cfg); 
+fn process_config() -> Result<(), Box<dyn std::error::Error>> {
+    let _cfg: Config = get_config()?; 
+    println!("Config is valid");
+    Ok(()) 
+}
+
+fn parse_cached() -> Result<WeatherData, Box<dyn std::error::Error>> { 
+    let home = std::env::var("HOME")?;
+    let cache_path = format!("{}/.cache/WeatherFetch/weather.json", home);
+    
+    if !PathBuf::from(&cache_path).exists() {
+        return Err("Cache file not found".into());
+    }
+    
+    let cache_data = fs::read_to_string(&cache_path)?;
+    let weather_data: WeatherData = serde_json::from_str(&cache_data)?;
+    Ok(weather_data)
+}
+
+fn print_help() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Help command");
+    println!("Usage: wfetch <command>");
+    println!("Commands:");
+    println!("  config      - Check config");
+    println!("  fetch       - Fetch weather-data");
+    println!("  clean       - Clean cache");
+    println!("  help        - Print help");
+    println!("  today       - Print today weather");
+    println!("  tomorrow    - Print tomorrow weather");
+    println!("  rebuild-cache - Rebuild cache");
+    Ok(())
+}
+
+fn clean_cache() -> Result<(), Box<dyn std::error::Error>> {
+    let home = std::env::var("HOME")?;
+    let cache_path = format!("{}/.cache/WeatherFetch/weather.json", home);
+    if PathBuf::from(&cache_path).exists() {
+        fs::remove_file(&cache_path)?;
+        println!("Cache cleaned successfully");
+    } else {
+        println!("Cache file not found");
+    }
+    Ok(())
+}
+
+fn rebuild_cache() -> Result<(), Box<dyn std::error::Error>> {
+    let rt = tokio::runtime::Runtime::new()?;
+    let weather_data = rt.block_on(parse_weather())?;
+    
+    let home = std::env::var("HOME")?;
+    let cache_dir = format!("{}/.cache/WeatherFetch", home);
+    fs::create_dir_all(&cache_dir)?;
+    
+    let cache_path = format!("{}/weather.json", cache_dir);
+    let json_data = serde_json::to_string_pretty(&weather_data)?;
+    fs::write(&cache_path, json_data)?;
+    
+    println!("Cache rebuilt successfully");
+    Ok(())
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
-    let config = process_config()?;
-
-
-
-  }
-
-
+    let cli = Cli::parse();
+    
+    match cli.command {
+        Some(Commands::Config) => {
+            println!("Config checker command");
+            process_config()?;
+            Ok(())
+        },
+        Some(Commands::Fetch) => {
+            println!("Fetch weather-data command");
+            let rt = tokio::runtime::Runtime::new()?;
+            let weather_data = rt.block_on(parse_weather())?;
+            println!("Weather data fetched: {:?}", weather_data);
+            Ok(())
+        },
+        Some(Commands::Clean) => {
+            println!("Clean cache command");
+            clean_cache()?;
+            Ok(())
+        },
+        Some(Commands::Help) => {
+            print_help()
+        },
+        Some(Commands::Today) => {
+            println!("Today weather command");
+            Ok(())
+        },
+        Some(Commands::Tomorrow) => {
+            println!("Tomorrow weather command");
+            Ok(())
+        },
+        Some(Commands::RebuildCache) => {
+            println!("Rebuild cache command");
+            rebuild_cache()?;
+            Ok(())
+        },
+        None => {
+            print_help()
+        },
+    }
+} 
