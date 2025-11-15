@@ -18,7 +18,10 @@ This is my pet project, but I think someone might like it. I am the sole develop
 
 <h2 align="center"> Tech details 🏗️</h2>
 
-- Uses the https://openweathermap.org/api/one-call-3 API, which requires coordinates or configuration to function properly.
+> [!WARNING] 
+> Not all of this fns can be implemented with openmeteo API 
+
+- Uses the free open-meteo API, which requires coordinates or configuration to function properly.
 - Displays images in the terminal.
 - Provides various time intervals, including daily, hourly, and minute-by-minute updates, as well as current information.
 - Can send alerts.
@@ -28,7 +31,8 @@ This is my pet project, but I think someone might like it. I am the sole develop
 <h2 align="center"> Using ⛽️</h2>
 
 >[!WARNING]
->Coordinates and an internet connection are required. This information is not stored or used in any way.
+>Coordinates and an internet connection are required if cache not builded properly.
+>To cache weather data you cah run `wfetch rebuild-cache`
 
 `wfetch -h`
 
