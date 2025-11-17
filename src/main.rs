@@ -33,13 +33,12 @@ use std::fs::{self, File};
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand}; 
-use termimage::Options;
 
 mod parser;
 mod shared;
 
 use parser::{get_config, parse_weather, generate_config, Config}; 
-use shared::{WeatherData, Current, Hourly}; 
+use shared::WeatherData; 
 
 #[derive(Parser)]
 #[command(name = "wfetch")]
