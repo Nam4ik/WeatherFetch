@@ -29,8 +29,6 @@ SOFTWARE.
 
 */
 
-use std::os::linux::process;
-
 use clap::{Cli, Command, Subcommand}; 
 use termimage;
 
