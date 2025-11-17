@@ -39,7 +39,7 @@ mod parser;
 mod shared;
 
 use parser::{get_config, parse_weather, generate_config, Config}; 
-use shared::WeatherData; 
+use shared::{WeatherData, Current, Hourly}; 
 
 #[derive(Parser)]
 #[command(name = "wfetch")]
@@ -152,7 +152,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         },
         Some(Commands::Today) => {
-            println!("Today weather command");
+            let data: WeatherData = parse_cached()?;
+            
+            println!("╔═══════════════════════════════════════╗");
+            println!("║           Today`s weather             ║");
+            println!("╠═══════════════════════════════════════╣");
+            println!("║ Time: {}    {}", format!("{:>28}", data.current.time), "║");
+            println!("║ Temp: {}°C        {}" , format!("{:>22}", data.current.temperature_2m), "║");
+            println!("║ Wind speed: {} m/s   {}", format!("{:>19}", data.current.wind_speed_10m), "║");
+            if let Some(elevation) = data.elevation {
+                println!("║ Height: {} m  {}", format!("{:>26}", elevation), "║");
+            }
+            if let Some(timezone) = &data.timezone {
+                println!("║ Time: {}          {}", format!("{:>22}", timezone), "║");
+            }
+            println!("║ Coords: {:.2}, {:.2},                 {}", data.latitude, data.longitude, "║");
+            println!("╚═══════════════════════════════════════╝");
+            
+        
+            if !data.hourly.time.is_empty() {
+                println!("┌──────────────┬──────────────┬──────────────┬──────────────┐");
+                println!("│ Time         │ Temp         │ Humidity     │ Wind         │");
+                println!("├──────────────┼──────────────┼──────────────┼──────────────┤");
+                
+                let hours_to_show = data.hourly.time.len().min(24);
+                for i in 0..hours_to_show {
+                    let time = &data.hourly.time[i];
+                    let temp = data.hourly.temperature_2m[i];
+                    let humidity = data.hourly.relative_humidity_2m[i];
+                    let wind = data.hourly.wind_speed_10m[i];
+                    
+                    println!("│ {:12} │ {:>10}°C │ {:>10}% │ {:>10} m/s │", 
+                        time, temp, humidity, wind);
+                }
+                println!("└──────────────┴──────────────┴──────────────┴──────────────┘");
+            }
+            
             Ok(())
         },
         Some(Commands::Tomorrow) => {
