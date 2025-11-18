@@ -22,11 +22,12 @@ This is my pet project, but I think someone might like it. I am the sole develop
 > Not all of this fns can be implemented with openmeteo API 
 
 - Uses the free open-meteo API, which requires coordinates or configuration to function properly.
-- Displays images in the terminal.
+- Displays images in the terminal. (WIP)
 - Provides various time intervals, including daily, hourly, and minute-by-minute updates, as well as current information.
-- Can send alerts.
+- Can send alerts. (WIP)
 - In case of internet connectivity issues, it can download information from a cache.
 
+WIP - work in progress. Its much more harder with free open-meteo API.
 
 <h2 align="center"> Using ⛽️</h2>
 
@@ -36,6 +37,25 @@ This is my pet project, but I think someone might like it. I am the sole develop
 
 `wfetch -h`
 
-<h2 align = "center"> Installation </h2>
+<h2 align = "center"> Installation 🔝</h2>
+
+**Build from source:**
+```shell 
+git clone https://github.com/Nam4ik/WeatherFetch
+cd WeatherFetch
+cargo build -rv 
+sudo mv ./target/release/wfetch /usr/local/bin
+cargo clean
+```
+
+<br>
+
+**Or just download release and move it to one of** `$PATH` **dirs.**
+
+<br>
+
+> [!TIP]
+> **Soon in aur.**
+
 
 <br>
