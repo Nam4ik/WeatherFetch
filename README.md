@@ -58,4 +58,3 @@ And dont forget switch coords in config to your!
 > [!TIP]
 > **Soon in aur.**
 
-
