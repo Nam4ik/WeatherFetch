@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
-// API answer struct`s 
+use serde::{Deserialize, Serialize};
+// API answer struct`s
 
-/// Main struct with fetched weather data 
+/// Main struct with fetched weather data
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WeatherData {
     pub latitude: f64,
@@ -42,7 +42,7 @@ pub struct Hourly {
     pub wind_speed_10m: Vec<f32>,
 }
 
-/// WeatherData.hourly_units = ts struct 
+/// WeatherData.hourly_units = ts struct
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HourlyUnits {
     pub time: Option<String>,
