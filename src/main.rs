@@ -180,7 +180,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         },
         Some(Commands::Today) => {
-            // to much vars 
+            // to much vars
             let data: WeatherData = parse_cached()?;
             let art_string = prepare_art(&data)?;
             let table_lines = generate_weather_table_content(&data);
@@ -221,7 +221,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         None => {
             println!("No subcommand specified.");
+            println!("Run `wfetch -h` or `wfetch help`"); 
+            println!("to see help message.");
             Ok(())
         },
     }
-} 
+
+}
