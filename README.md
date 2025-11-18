@@ -46,8 +46,9 @@ cd WeatherFetch
 cargo build -rv 
 sudo mv ./target/release/wfetch /usr/local/bin
 cargo clean
+wfetch config && cp src/arts.yaml ~/.config/WeatherFetch/
 ```
-
+And dont forget switch coords in config to your!
 <br>
 
 **Or just download release and move it to one of** `$PATH` **dirs.**
@@ -57,6 +58,4 @@ cargo clean
 > [!TIP]
 > **Soon in aur.**
 
-
-<br>
 
