@@ -3,7 +3,7 @@
 <a href="https://t.me/ArcaneDevStudio" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Telegram-@ArcaneDevStudio-blue?style=flat-square&logo=telegram" alt="Telegram">
 </a>
-<a href="https://github.com/Nam4ik/TG-SOURCES-RP2P/actions", target="_blank", rel="noopener noreferrer">
+<a href="https://github.com/Nam4ik/WeatherFetch/actions", target="_blank", rel="noopener noreferrer">
     <img src="https://github.com/Nam4ik/WeatherFetch/actions/workflows/rust.yml/badge.svg?event=push", alt="rust.yml">
 </a> 
 <img src="https://img.shields.io/badge/Version-v0.1-blue.svg">
