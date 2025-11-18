@@ -38,7 +38,9 @@ mod parser;
 mod shared;
 
 use parser::{get_config, parse_weather, generate_config, Config}; 
-use shared::WeatherData; 
+use shared::WeatherData;
+
+use crate::parser::{determine_weather_type, prepare_art}; 
 
 #[derive(Parser)]
 #[command(name = "wfetch")]
@@ -59,6 +61,7 @@ enum Commands {
     CheckCfg
 }
 
+/// Micro config-validator, easily you can just `wfetch fetch` and see the error 
 fn process_config() -> Result<(), Box<dyn std::error::Error>> {
     let _cfg: Config = get_config()?; 
     println!("Config is valid");
@@ -78,19 +81,6 @@ fn parse_cached() -> Result<WeatherData, Box<dyn std::error::Error>> {
     Ok(weather_data)
 }
 
-fn print_help() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Help command");
-    println!("Usage: wfetch <command>");
-    println!("Commands:");
-    println!("  config      - Check config");
-    println!("  fetch       - Fetch weather-data");
-    println!("  clean       - Clean cache");
-    println!("  help        - Print help");
-    println!("  today       - Print today weather");
-    println!("  tomorrow    - Print tomorrow weather");
-    println!("  rebuild-cache - Rebuild cache");
-    Ok(())
-}
 
 fn clean_cache() -> Result<(), Box<dyn std::error::Error>> {
     let home = std::env::var("HOME")?;
@@ -120,6 +110,45 @@ fn rebuild_cache() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn generate_weather_table_content(data: &WeatherData) -> Vec<String> {
+    let mut lines = Vec::new();
+
+    lines.push("╔═══════════════════════════════════════╗".to_string());
+    lines.push("║           Today`s weather             ║".to_string());
+    lines.push("╠═══════════════════════════════════════╣".to_string());
+    lines.push(format!("║ Time: {}    ║", format!("{:>28}", data.current.time)));
+    lines.push(format!("║ Temp: {}°C        ║", format!("{:>22}", data.current.temperature_2m)));
+    lines.push(format!("║ Wind speed: {} m/s   ║", format!("{:>19}", data.current.wind_speed_10m)));
+    lines.push(format!("║ Type:                  {}           ║", determine_weather_type(data.current.temperature_2m, Some(data.hourly.relative_humidity_2m[0]))));
+    if let Some(elevation) = data.elevation {
+        lines.push(format!("║ Height: {} m  ║", format!("{:>26}", elevation)));
+    }
+    if let Some(timezone) = &data.timezone {
+        lines.push(format!("║ Time: {}          ║", format!("{:>22}", timezone)));
+    }
+    lines.push(format!("║ Coords: {:.2}, {:.2},                 ║", data.latitude, data.longitude));
+    lines.push("╚═══════════════════════════════════════╝".to_string());
+
+    if !data.hourly.time.is_empty() {
+        lines.push("┌──────────────────┬──────────────┬──────────────┬──────────────┐".to_string());
+        lines.push("│ Time             │ Temp         │ Humidity     │ Wind         │".to_string());
+        lines.push("├──────────────────┼──────────────┼──────────────┼──────────────┤".to_string());
+
+        let hours_to_show = data.hourly.time.len().min(24);
+        for i in 0..hours_to_show {
+            let time = &data.hourly.time[i];
+            let temp = data.hourly.temperature_2m[i];
+            let humidity = data.hourly.relative_humidity_2m[i];
+            let wind = data.hourly.wind_speed_10m[i];
+
+            lines.push(format!("│ {:12} │ {:>10}°C │ {:>10}% │ {:>10} m/s │",
+                               time, temp, humidity, wind));
+        }
+        lines.push("└──────────────────┴──────────────┴──────────────┴──────────────┘".to_string());
+    }
+
+    lines 
+}
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     
@@ -140,7 +169,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(Commands::Fetch) => {
             println!("Fetch weather-data command");
             let rt = tokio::runtime::Runtime::new()?;
-            let weather_data = rt.block_on(parse_weather())?;
+            let _weather_data = rt.block_on(parse_weather())?;
             let home = std::env::var("HOME")?; 
             println!("Weather data fetched to: {}", format!("{}/.cache/WeatherFetch", home));
             Ok(())
@@ -151,42 +180,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         },
         Some(Commands::Today) => {
+            // to much vars 
             let data: WeatherData = parse_cached()?;
-            
-            println!("╔═══════════════════════════════════════╗");
-            println!("║           Today`s weather             ║");
-            println!("╠═══════════════════════════════════════╣");
-            println!("║ Time: {}    {}", format!("{:>28}", data.current.time), "║");
-            println!("║ Temp: {}°C        {}" , format!("{:>22}", data.current.temperature_2m), "║");
-            println!("║ Wind speed: {} m/s   {}", format!("{:>19}", data.current.wind_speed_10m), "║");
-            if let Some(elevation) = data.elevation {
-                println!("║ Height: {} m  {}", format!("{:>26}", elevation), "║");
+            let art_string = prepare_art(&data)?;
+            let table_lines = generate_weather_table_content(&data);
+
+            let art_lines: Vec<&str> = art_string.lines().collect();
+
+            let max_art_width = art_lines.iter().map(|line| line.len()).max().unwrap_or(0);
+
+            let max_lines = art_lines.len().max(table_lines.len());
+
+            for i in 0..max_lines {
+                let art_part = art_lines.get(i).unwrap_or(&"");
+                let table_part = table_lines.get(i).map(|s| s.as_str()).unwrap_or("");
+
+                println!("{:<width$} {}", art_part, table_part, width = max_art_width);
             }
-            if let Some(timezone) = &data.timezone {
-                println!("║ Time: {}          {}", format!("{:>22}", timezone), "║");
-            }
-            println!("║ Coords: {:.2}, {:.2},                 {}", data.latitude, data.longitude, "║");
-            println!("╚═══════════════════════════════════════╝");
-            
-        
-            if !data.hourly.time.is_empty() {
-                println!("┌──────────────┬──────────────┬──────────────┬──────────────┐");
-                println!("│ Time         │ Temp         │ Humidity     │ Wind         │");
-                println!("├──────────────┼──────────────┼──────────────┼──────────────┤");
-                
-                let hours_to_show = data.hourly.time.len().min(24);
-                for i in 0..hours_to_show {
-                    let time = &data.hourly.time[i];
-                    let temp = data.hourly.temperature_2m[i];
-                    let humidity = data.hourly.relative_humidity_2m[i];
-                    let wind = data.hourly.wind_speed_10m[i];
-                    
-                    println!("│ {:12} │ {:>10}°C │ {:>10}% │ {:>10} m/s │", 
-                        time, temp, humidity, wind);
-                }
-                println!("└──────────────┴──────────────┴──────────────┴──────────────┘");
-            }
-            
             Ok(())
         },
         Some(Commands::Tomorrow) => {
@@ -210,7 +220,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         None => {
-            print_help()
+            println!("No subcommand specified.");
+            Ok(())
         },
     }
 } 

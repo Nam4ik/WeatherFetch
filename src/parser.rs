@@ -2,40 +2,18 @@ use reqwest::Client;
 use std::fs::{self, File};
 use std::io::Read;
 use toml; 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json;
+use serde_yml;
 
 // use crate::configmanager::Config;
 use crate::shared::*; 
-
-pub type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
 fn get_config_path() -> Result<String, Box<dyn std::error::Error>> {
     let home = std::env::var("HOME")?;
     Ok(format!("{}/.config/WeatherFetch/Config.toml", home))
 }
 
-/* 
-const CONF: Lazy<Result<Config, Box<dyn std::error::Error + Send + Sync>>> = Lazy::new(|| {
-    Config::load().map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
-});
-*/
-
-pub fn get_location(coords_args: bool) -> Result<(), BoxedError> {
-    let config = get_config().unwrap();
-
-    if (config.lat == 0.0 || config.lon == 0.0) && !coords_args {
-        
-        println!("No coordinates in configuration file or conf not founded.");
-        println!("HINT: Try create ~/.config/WeatherFetch/Config.toml");
-        println!("HINT: And add `lat(<float>)`, `lon(<float>)`.");
-        println!("HINT: To get more info check https://open-meteo.com/en/docs");
-        
-        Err("Invalid coordinates in config".into())
-    } else {
-        Ok(())
-    }
-}
 
 pub async fn parse_weather() -> Result<WeatherData, Box<dyn std::error::Error>> {
     let config = get_config()?;
@@ -66,14 +44,12 @@ pub async fn parse_weather() -> Result<WeatherData, Box<dyn std::error::Error>> 
 }
 
 
+// TODO: Add exclude processing 
 #[derive(Debug, Deserialize)]
 pub struct Config {
     lat: f64,
     lon: f64,
-    exclude: String,
-    appid: String,
-    units: String,
-    lang: String,
+    exclude: String
 }
 
 pub fn get_config() -> Result<Config, Box<dyn std::error::Error>> {
@@ -92,6 +68,7 @@ pub fn get_config() -> Result<Config, Box<dyn std::error::Error>> {
     Ok(config)
 }
 
+/* 
 pub fn generate_cachedir() -> Result<(), Box<dyn std::error::Error>> {
     let home = std::env::var("HOME")?;
     let cache_path = format!("{}/.cache/WeatherFetch/", home);
@@ -100,10 +77,17 @@ pub fn generate_cachedir() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+*/ 
 
+/// Just writing example config to ~/.config/WeatherFetch/Config.toml 
+///     let _ = generate_config() 
+/// Result: ~/.config/WeatherFetch/Config.toml: 
+///     lat = 55.75 
+///     lon = 37.62 
+///     exclude = "" 
 pub fn generate_config() -> Result<(), Box<dyn std::error::Error>> { 
     let config_path = get_config_path()?;
-    let config = "lat = 55.75\nlon = 37.62\nexclude = \"\"\nappid = \"\"\nunits = \"metric\"\nlang = \"ru\""; 
+    let config = "lat = 55.75\nlon = 37.62\nexclude = \"\""; 
     let path = std::path::Path::new(&config_path);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
@@ -112,3 +96,83 @@ pub fn generate_config() -> Result<(), Box<dyn std::error::Error>> {
     println!("Config file generated at: {}", config_path);
     Ok(())
 }
+
+/// For usage like type in `let` 
+#[derive(Serialize, Deserialize, Debug)]
+struct Arts {
+    #[serde(rename = "Arts")]
+    arts: ArtsData,
+}
+
+/// Strings with arts from arts.yaml 
+#[derive(Serialize, Deserialize, Debug)]
+struct ArtsData {
+    sun: String,
+    snow: String,
+    rain: String,
+}
+
+/// Weather type checker, crutch, it hurts me to look at it
+pub fn determine_weather_type(temp: f32, humidity: Option<u32>) -> &'static str {
+    if temp < 0.0 {
+        return "snow";
+    }
+    
+    if let Some(hum) = humidity {
+        if hum > 70 && temp < 25.0 {
+            return "rain";
+        }
+    }
+
+    "sun"
+}
+
+/// Arts loader with exception wrappers 
+fn load_arts() -> Result<ArtsData, Box<dyn std::error::Error>> {
+    let home = std::env::var("HOME")?;
+    let arts_path = format!("{}/.config/WeatherFetch/arts.yaml", home);
+    
+    let content = match fs::read_to_string(&arts_path) {
+        Ok(c) => c,
+        Err(_) => {
+            // if arts.yaml not found
+            return Ok(ArtsData {
+                sun: "☀️ - ts emoji means program cant found ~/.config/WeatherFetch/arts.yaml".to_string(),
+                snow: "❄️ - ts emoji means program cant found ~/.config/WeatherFetch/arts.yaml".to_string(),
+                rain: "🌧️ - ts emoji means program cant found ~/.config/WeatherFetch/arts.yaml".to_string(),
+            });
+        }
+    };
+    
+    let arts: Arts = serde_yml::from_str(&content)?;
+    Ok(arts.arts)
+}
+
+fn process_placeholders(art: &str) -> String {
+    art.replace("{0}", "")
+}
+
+/// Choosing and retuns art (String) 
+/// Usage: 
+///     let data: WeatherData = parse_cached()?;
+///     prepare_art(&data); 
+pub fn prepare_art(weather_data: &WeatherData) -> Result<String, Box<dyn std::error::Error>> {
+    let arts = load_arts()?;
+    
+    let weather_type = determine_weather_type(
+        weather_data.current.temperature_2m,
+        weather_data.hourly.relative_humidity_2m.first().copied(),
+    );
+    
+    let selected_art = match weather_type {
+        "snow" => &arts.snow,
+        "rain" => &arts.rain,
+        "sun" => &arts.sun,
+        _ => &arts.sun,
+    };
+    
+    let processed_art = process_placeholders(selected_art);
+    
+    Ok(processed_art)
+}
+
