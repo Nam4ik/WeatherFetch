@@ -29,18 +29,20 @@ SOFTWARE.
 
 */
 
-use std::fs::{self, File};
-use std::path::PathBuf;
+use std::{
+    fs::{self, File},
+    path::PathBuf,
+};
 
-use clap::{Parser, Subcommand}; 
+use clap::{Parser, Subcommand};
 
 mod parser;
 mod shared;
 
-use parser::{get_config, parse_weather, generate_config, Config}; 
+use parser::{generate_config, get_config, parse_weather, Config};
 use shared::WeatherData;
 
-use crate::parser::{determine_weather_type, prepare_art}; 
+use crate::parser::{determine_weather_type, prepare_art};
 
 #[derive(Parser)]
 #[command(name = "wfetch")]
@@ -52,35 +54,34 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Config, 
+    Config,
     Fetch,
-    Clean, 
-    Today, 
-    Tomorrow, 
+    Clean,
+    Today,
+    Tomorrow,
     RebuildCache,
-    CheckCfg
+    CheckCfg,
 }
 
-/// Micro config-validator, easily you can just `wfetch fetch` and see the error 
+/// Micro config-validator, easily you can just `wfetch fetch` and see the error
 fn process_config() -> Result<(), Box<dyn std::error::Error>> {
-    let _cfg: Config = get_config()?; 
+    let _cfg: Config = get_config()?;
     println!("Config is valid");
-    Ok(()) 
+    Ok(())
 }
 
-fn parse_cached() -> Result<WeatherData, Box<dyn std::error::Error>> { 
+fn parse_cached() -> Result<WeatherData, Box<dyn std::error::Error>> {
     let home = std::env::var("HOME")?;
     let cache_path = format!("{}/.cache/WeatherFetch/weather.json", home);
-    
+
     if !PathBuf::from(&cache_path).exists() {
         return Err("Cache file not found".into());
     }
-    
+
     let cache_data = fs::read_to_string(&cache_path)?;
     let weather_data: WeatherData = serde_json::from_str(&cache_data)?;
     Ok(weather_data)
 }
-
 
 fn clean_cache() -> Result<(), Box<dyn std::error::Error>> {
     let home = std::env::var("HOME")?;
@@ -97,15 +98,15 @@ fn clean_cache() -> Result<(), Box<dyn std::error::Error>> {
 fn rebuild_cache() -> Result<(), Box<dyn std::error::Error>> {
     let rt = tokio::runtime::Runtime::new()?;
     let weather_data = rt.block_on(parse_weather())?;
-    
+
     let home = std::env::var("HOME")?;
     let cache_dir = format!("{}/.cache/WeatherFetch", home);
     fs::create_dir_all(&cache_dir)?;
-    
+
     let cache_path = format!("{}/weather.json", cache_dir);
     let json_data = serde_json::to_string_pretty(&weather_data)?;
     fs::write(&cache_path, json_data)?;
-    
+
     println!("Cache rebuilt successfully");
     Ok(())
 }
@@ -116,17 +117,38 @@ fn generate_weather_table_content(data: &WeatherData) -> Vec<String> {
     lines.push("╔═══════════════════════════════════════╗".to_string());
     lines.push("║           Today`s weather             ║".to_string());
     lines.push("╠═══════════════════════════════════════╣".to_string());
-    lines.push(format!("║ Time: {}    ║", format!("{:>28}", data.current.time)));
-    lines.push(format!("║ Temp: {}°C        ║", format!("{:>22}", data.current.temperature_2m)));
-    lines.push(format!("║ Wind speed: {} m/s   ║", format!("{:>19}", data.current.wind_speed_10m)));
-    lines.push(format!("║ Type:                  {}           ║", determine_weather_type(data.current.temperature_2m, Some(data.hourly.relative_humidity_2m[0]))));
+    lines.push(format!(
+        "║ Time: {}    ║",
+        format!("{:>28}", data.current.time)
+    ));
+    lines.push(format!(
+        "║ Temp: {}°C        ║",
+        format!("{:>22}", data.current.temperature_2m)
+    ));
+    lines.push(format!(
+        "║ Wind speed: {} m/s   ║",
+        format!("{:>19}", data.current.wind_speed_10m)
+    ));
+    lines.push(format!(
+        "║ Type:                  {}           ║",
+        determine_weather_type(
+            data.current.temperature_2m,
+            Some(data.hourly.relative_humidity_2m[0])
+        )
+    ));
     if let Some(elevation) = data.elevation {
         lines.push(format!("║ Height: {} m  ║", format!("{:>26}", elevation)));
     }
     if let Some(timezone) = &data.timezone {
-        lines.push(format!("║ Time: {}          ║", format!("{:>22}", timezone)));
+        lines.push(format!(
+            "║ Time: {}          ║",
+            format!("{:>22}", timezone)
+        ));
     }
-    lines.push(format!("║ Coords: {:.2}, {:.2},                 ║", data.latitude, data.longitude));
+    lines.push(format!(
+        "║ Coords: {:.2}, {:.2},                 ║",
+        data.latitude, data.longitude
+    ));
     lines.push("╚═══════════════════════════════════════╝".to_string());
 
     if !data.hourly.time.is_empty() {
@@ -141,44 +163,49 @@ fn generate_weather_table_content(data: &WeatherData) -> Vec<String> {
             let humidity = data.hourly.relative_humidity_2m[i];
             let wind = data.hourly.wind_speed_10m[i];
 
-            lines.push(format!("│ {:12} │ {:>10}°C │ {:>10}% │ {:>10} m/s │",
-                               time, temp, humidity, wind));
+            lines.push(format!(
+                "│ {:12} │ {:>10}°C │ {:>10}% │ {:>10} m/s │",
+                time, temp, humidity, wind
+            ));
         }
         lines.push("└──────────────────┴──────────────┴──────────────┴──────────────┘".to_string());
     }
 
-    lines 
+    lines
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    
+
     match cli.command {
         Some(Commands::Config) => {
             println!("Config checker command");
             let home = std::env::var("HOME")?;
             let config_path = format!("{}/.config/WeatherFetch/Config.toml", home);
             if File::open(&config_path).is_err() {
-                generate_config()?; 
-                println!("Config generated successfully"); 
+                generate_config()?;
+                println!("Config generated successfully");
             } else {
                 process_config()?;
-                println!("Config already exists and is valid."); 
+                println!("Config already exists and is valid.");
             }
             Ok(())
-        },
+        }
         Some(Commands::Fetch) => {
             println!("Fetch weather-data command");
             let rt = tokio::runtime::Runtime::new()?;
             let _weather_data = rt.block_on(parse_weather())?;
-            let home = std::env::var("HOME")?; 
-            println!("Weather data fetched to: {}", format!("{}/.cache/WeatherFetch", home));
+            let home = std::env::var("HOME")?;
+            println!(
+                "Weather data fetched to: {}",
+                format!("{}/.cache/WeatherFetch", home)
+            );
             Ok(())
-        },
+        }
         Some(Commands::Clean) => {
             println!("Clean cache command");
             clean_cache()?;
             Ok(())
-        },
+        }
         Some(Commands::Today) => {
             // to much vars
             let data: WeatherData = parse_cached()?;
@@ -198,33 +225,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("{:<width$} {}", art_part, table_part, width = max_art_width);
             }
             Ok(())
-        },
+        }
         Some(Commands::Tomorrow) => {
             println!("Tomorrow weather command");
             Ok(())
-        },
+        }
         Some(Commands::RebuildCache) => {
             println!("Rebuild cache command");
             rebuild_cache()?;
             Ok(())
-        },
+        }
         Some(Commands::CheckCfg) => {
-            println!("Validating cfg..."); 
+            println!("Validating cfg...");
             let home = std::env::var("HOME")?;
             let config_path = format!("{}/.config/WeatherFetch/Config.toml", home);
             if File::open(&config_path).is_ok() {
-                process_config()?; 
+                process_config()?;
             } else {
-                println!("Config file not found, try `wfetch config`, its will generate default cfg.");
+                println!(
+                    "Config file not found, try `wfetch config`, its will generate default cfg."
+                );
             }
             Ok(())
         }
         None => {
             println!("No subcommand specified.");
-            println!("Run `wfetch -h` or `wfetch help`"); 
+            println!("Run `wfetch -h` or `wfetch help`");
             println!("to see help message.");
             Ok(())
-        },
+        }
     }
-
 }

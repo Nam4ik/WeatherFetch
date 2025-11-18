@@ -6,13 +6,9 @@ max_width                    = 100                 # Максимальная ш
 hard_tabs                    = false               # Использовать пробелы вместо табов
 tab_spaces                   = 4                   # Количество пробелов на таб
 error_on_line_overflow       = true                # Ошибка при превышении ширины строки
-report_todo                  = "Always"            # Отмечать TODO комментарии
-report_fixme                 = "Always"            # Отмечать FIXME комментарии
 
 # Отступы и выравнивание
 indent_style                 = "Block"             # Стиль отступов ("Block" или "Visual")
-align_enum_variants          = true                # Выравнивать варианты enum
-align_function_params        = false               # Выравнивать параметры функций
 
 # Структуры и enum
 struct_lit_single_line       = true                # Разрешить литералы структур в одну строку
@@ -21,7 +17,7 @@ match_arm_blocks             = true                # Блоки в руках ma
 match_block_trailing_comma   = false               # Запятая после последнего элемента в match
 
 # Функции и where-клаузы
-fn_args_layout               = "Tall"              # Параметры функции в несколько строк
+fn_params_layout               = "Tall"              # Параметры функции в несколько строк
 where_single_line            = false               # Переносить where-клаузы на новую строку
 brace_style                  = "SameLineWhere"     # Расположение фигурных скобок
 
