@@ -59,3 +59,14 @@ cargo clean
 
 
 <br>
+
+**Or just download release and move it to one of** `$PATH` **dirs.**
+
+<br>
+
+> [!TIP]
+> **Soon in aur.**
+
+
+<br>
+
