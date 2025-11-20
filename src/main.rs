@@ -61,6 +61,7 @@ enum Commands {
     Tomorrow,
     RebuildCache,
     CheckCfg,
+    Credits 
 }
 
 /// Micro config-validator, easily you can just `wfetch fetch` and see the error
@@ -246,6 +247,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "Config file not found, try `wfetch config`, its will generate default cfg."
                 );
             }
+            Ok(())
+        }
+        Some(Commands::Credits) => {
+            println!("Credits:"); 
+            println!("Maintaner & developer: Namilsk <namilsk@namilsk.tech>");
+            println!("ASCII arts by www.asciiart.eu: Joan G. Stark");
             Ok(())
         }
         None => {
