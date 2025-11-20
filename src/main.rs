@@ -61,7 +61,8 @@ enum Commands {
     Tomorrow,
     RebuildCache,
     CheckCfg,
-    Credits 
+    Credits, 
+    DebugOutput
 }
 
 /// Micro config-validator, easily you can just `wfetch fetch` and see the error
@@ -210,7 +211,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(Commands::Today) => {
             // to much vars
             let data: WeatherData = parse_cached()?;
-            let art_string = prepare_art(&data)?;
+            let art_string = prepare_art(&data, false)?;
             let table_lines = generate_weather_table_content(&data);
 
             let art_lines: Vec<&str> = art_string.lines().collect();
@@ -229,6 +230,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Some(Commands::Tomorrow) => {
             println!("Tomorrow weather command");
+            Ok(())
+        }
+        Some(Commands::DebugOutput) => {
+            let data: WeatherData = parse_cached()?;
+            let art_string = prepare_art(&data, true)?;
+            let table_lines = generate_weather_table_content(&data);
+
+            let art_lines: Vec<&str> = art_string.lines().collect();
+
+            let max_art_width = art_lines.iter().map(|line| line.len()).max().unwrap_or(0);
+
+            let max_lines = art_lines.len().max(table_lines.len());
+
+            for i in 0..max_lines {
+                let art_part = art_lines.get(i).unwrap_or(&"");
+                let table_part = table_lines.get(i).map(|s| s.as_str()).unwrap_or("");
+
+                println!("{:<width$} {}", art_part, table_part, width = max_art_width);
+            }
             Ok(())
         }
         Some(Commands::RebuildCache) => {

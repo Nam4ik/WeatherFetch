@@ -136,7 +136,7 @@ pub fn determine_weather_type(temp: f32, humidity: Option<u32>) -> &'static str 
 fn load_arts() -> Result<ArtsData, Box<dyn std::error::Error>> {
     let home = std::env::var("HOME")?;
     let arts_path = format!("{}/.config/WeatherFetch/arts.yaml", home);
-
+    
     let content = match fs::read_to_string(&arts_path) {
         Ok(c) => c,
         Err(_) => {
@@ -151,6 +151,7 @@ fn load_arts() -> Result<ArtsData, Box<dyn std::error::Error>> {
             });
         }
     };
+    println!("--- RAW FILE CONTENT START ---\n{}\n--- RAW FILE CONTENT END ---", content);
 
     let arts: Arts = serde_yml::from_str(&content)?;
     Ok(arts.arts)
@@ -170,7 +171,7 @@ fn process_placeholders(art: &str) -> String {
 /// Usage:
 ///     let data: WeatherData = parse_cached()?;
 ///     prepare_art(&data);
-pub fn prepare_art(weather_data: &WeatherData) -> Result<String, Box<dyn std::error::Error>> {
+pub fn prepare_art(weather_data: &WeatherData, debug: bool) -> Result<String, Box<dyn std::error::Error>> {
     let arts = load_arts()?;
 
     let weather_type = determine_weather_type(
@@ -184,8 +185,21 @@ pub fn prepare_art(weather_data: &WeatherData) -> Result<String, Box<dyn std::er
         "sun" => &arts.sun,
         _ => &arts.sun,
     };
+    
+    if(debug == true) {
+        println!("-- RAW SELECTED ART (debug):\n{:?}\n", selected_art);
+        println!("-- RAW SELECTED ART (display):\n{}\n", selected_art);
+    }
 
     let processed_art = process_placeholders(selected_art);
 
+    if(debug == true) {
+    println!("-- PROCESSED ART (debug):\n{:?}\n", processed_art);
+    println!("-- PROCESSED ART (display):");
+    println!("contains <Yellow>? {}", selected_art.contains("<Yellow>"));
+    println!("contains <Purple>? {}", selected_art.contains("<Purple>"));
+    println!("contains <Blue>? {}", selected_art.contains("<Blue>"));
+    println!("processed contains \\x1b? {}", processed_art.contains("\x1b"));
+    }
     Ok(processed_art)
 }
