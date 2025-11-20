@@ -157,7 +157,13 @@ fn load_arts() -> Result<ArtsData, Box<dyn std::error::Error>> {
 }
 
 fn process_placeholders(art: &str) -> String {
-    art.replace("{0}", "")
+    let strart = art.to_string(); 
+    let mut processed_art = strart.replace("{0}", " ") 
+        .replace("<Yellow>", "\x1b[0;33m")
+        .replace("<Blue>", "\x1b[0;34m")
+        .replace("<Purple>", "\x1b[0;35m")
+        .replace("<end>", "\x1b[0m");
+    processed_art
 }
 
 /// Choosing and retuns art (String)
