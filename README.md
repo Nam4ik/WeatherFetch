@@ -11,8 +11,8 @@
 <br>
 <br>
   
-**WeaterFetch: Written on rust fetch tool like Neofetch or FastFetch but with Weather.**
-This is my pet project, but I think someone might like it. I am the sole developer, so if you encounter any issues or bugs, please inform me or create a pull request. 
+**Written on rust fetch tool like Neofetch or FastFetch but with Weather.**
+This is my pet project.I am the sole developer, so if you encounter any issues or bugs, please inform me or create a pull request. 
 
 </div>
 
