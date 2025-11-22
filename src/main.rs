@@ -30,8 +30,8 @@ SOFTWARE.
 */
 
 use std::{
-    fs::{self, File},
-    path::PathBuf,
+    fs::{self, File}, 
+    path::PathBuf
 };
 
 use clap::{Parser, Subcommand};
@@ -103,7 +103,7 @@ fn clean_cache() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn rebuild_cache() -> Result<(), Box<dyn std::error::Error>> {
+fn rebuild_cache(quiet: bool) -> Result<(), Box<dyn std::error::Error>> {
     let rt = tokio::runtime::Runtime::new()?;
     let weather_data = rt.block_on(parse_weather())?;
 
@@ -114,8 +114,10 @@ fn rebuild_cache() -> Result<(), Box<dyn std::error::Error>> {
     let cache_path = format!("{}/weather.json", cache_dir);
     let json_data = serde_json::to_string_pretty(&weather_data)?;
     fs::write(&cache_path, json_data)?;
-
-    println!("Cache rebuilt successfully");
+    
+    if !quiet {
+        println!("Cache rebuilt successfully");
+    }
     Ok(())
 }
 
@@ -181,6 +183,8 @@ fn generate_weather_table_content(data: &WeatherData) -> Vec<String> {
 
     lines
 }
+
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
@@ -216,12 +220,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Some(Commands::Today) => {
             // to much vars
-            let data: WeatherData = parse_cached()?;
+            let data: WeatherData; 
+            if rebuild_cache(true).is_err() {
+                data = parse_cached()?;
+            } else {
+                let rt = tokio::runtime::Runtime::new()?;
+                data = rt.block_on(parse_weather())?;
+            }
+            
             let art_string = prepare_art(&data, false)?;
             let table_lines = generate_weather_table_content(&data);
 
             let art_lines: Vec<&str> = art_string.lines().collect();
-
+            
             let max_art_width = art_lines.iter().map(|line| visible_length(line)).max().unwrap_or(0);
 
             let max_lines = art_lines.len().max(table_lines.len());
@@ -262,7 +273,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Some(Commands::RebuildCache) => {
             println!("Rebuild cache command");
-            rebuild_cache()?;
+            rebuild_cache(false)?;
             Ok(())
         }
         Some(Commands::CheckCfg) => {
