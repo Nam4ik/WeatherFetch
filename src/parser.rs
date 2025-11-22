@@ -7,7 +7,7 @@ use reqwest::Client;
 use toml;
 use serde::{Deserialize, Serialize};
 use serde_json;
-use serde_yml;
+use serde_yml; 
 
 // use crate::configmanager::Config;
 use crate::shared::*;
@@ -162,7 +162,7 @@ fn load_arts(debug: bool) -> Result<ArtsData, Box<dyn std::error::Error>> {
 
 fn process_placeholders(art: &str) -> String {
     let strart = art.to_string(); 
-    let mut processed_art = strart.replace("{0}", " ") 
+    let processed_art = strart.replace("{0}", " ") 
         .replace("<Yellow>", "\x1b[0;33m")
         .replace("<Blue>", "\x1b[0;34m")
         .replace("<Purple>", "\x1b[0;35m")
@@ -206,3 +206,35 @@ pub fn prepare_art(weather_data: &WeatherData, debug: bool) -> Result<String, Bo
     }
     Ok(processed_art)
 }
+
+/// Remove ANSI escape codes from string and return visible length
+pub fn visible_length(s: &str) -> usize {
+    let mut count = 0;
+    let mut chars = s.chars().peekable();
+
+    while let Some(ch) = chars.next() {
+        if ch == '\x1b' && chars.peek() == Some(&'[') {
+            // Found ANSI escape sequence, skip until 'm'
+            chars.next(); // consume '['
+            while let Some(&next_ch) = chars.peek() {
+                chars.next(); // consume character
+                if next_ch == 'm' {
+                    break; // end of ANSI sequence
+                }
+            }
+        } else {
+            count += 1;
+        }
+    }
+
+    count
+}
+
+
+/// Left-pad a string with spaces to the specified visible width, accounting for ANSI codes
+pub fn pad_with_ansi(s: &str, width: usize) -> String {
+    let visible_len = visible_length(s);
+    let padding_needed = if width > visible_len { width - visible_len } else { 0 };
+    let padding = " ".repeat(padding_needed);
+    format!("{}{}", s, padding)
+}                               

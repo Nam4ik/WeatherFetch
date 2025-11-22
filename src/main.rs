@@ -39,7 +39,13 @@ use clap::{Parser, Subcommand};
 mod parser;
 mod shared;
 
-use parser::{generate_config, get_config, parse_weather, Config};
+use parser::{generate_config, 
+             get_config, 
+             parse_weather, 
+             Config, 
+             visible_length, 
+             pad_with_ansi};
+
 use shared::WeatherData;
 
 use crate::parser::{determine_weather_type, prepare_art};
@@ -216,7 +222,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let art_lines: Vec<&str> = art_string.lines().collect();
 
-            let max_art_width = art_lines.iter().map(|line| line.len()).max().unwrap_or(0);
+            let max_art_width = art_lines.iter().map(|line| visible_length(line)).max().unwrap_or(0);
 
             let max_lines = art_lines.len().max(table_lines.len());
 
@@ -224,8 +230,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let art_part = art_lines.get(i).unwrap_or(&"");
                 let table_part = table_lines.get(i).map(|s| s.as_str()).unwrap_or("");
 
-                println!("{:<width$} {}", art_part, table_part, width = max_art_width);
+                let padded_art = pad_with_ansi(art_part, max_art_width);
+                println!("{} {}", padded_art, table_part);
             }
+            
             Ok(())
         }
         Some(Commands::Tomorrow) => {
@@ -239,7 +247,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let art_lines: Vec<&str> = art_string.lines().collect();
 
-            let max_art_width = art_lines.iter().map(|line| line.len()).max().unwrap_or(0);
+            let max_art_width = art_lines.iter().map(|line| visible_length(line)).max().unwrap_or(0);
 
             let max_lines = art_lines.len().max(table_lines.len());
 
@@ -247,7 +255,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let art_part = art_lines.get(i).unwrap_or(&"");
                 let table_part = table_lines.get(i).map(|s| s.as_str()).unwrap_or("");
 
-                println!("{:<width$} {}", art_part, table_part, width = max_art_width);
+                let padded_art = pad_with_ansi(art_part, max_art_width);
+                println!("{} {}", padded_art, table_part);
             }
             Ok(())
         }
