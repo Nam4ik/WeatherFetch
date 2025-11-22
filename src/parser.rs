@@ -30,6 +30,7 @@ pub async fn parse_weather() -> Result<WeatherData, Box<dyn std::error::Error>> 
                 "hourly",
                 "temperature_2m,relative_humidity_2m,wind_speed_10m".to_string(),
             ),
+            ("timezone", config.timezone.unwrap_or("Europe/London".to_string())),
         ])
         .send()
         .await?;
@@ -55,6 +56,7 @@ pub struct Config {
     lat: f64,
     lon: f64,
     exclude: String,
+    timezone: Option<String>,
 }
 
 pub fn get_config() -> Result<Config, Box<dyn std::error::Error>> {
@@ -92,7 +94,7 @@ pub fn generate_cachedir() -> Result<(), Box<dyn std::error::Error>> {
 ///     exclude = ""
 pub fn generate_config() -> Result<(), Box<dyn std::error::Error>> {
     let config_path = get_config_path()?;
-    let config = "lat = 55.75\nlon = 37.62\nexclude = \"\"";
+    let config = "lat = 55.75\nlon = 37.62\nexclude = \"\"\ntimezone = \"Europe/Moscow\"";
     let path = std::path::Path::new(&config_path);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
