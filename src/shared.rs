@@ -16,7 +16,7 @@ pub struct WeatherData {
     pub hourly_units: Option<HourlyUnits>,
     pub hourly: Hourly,
 }
-
+// ts means this, not typescript
 /// WeatherData.current = ts struct
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Current {
