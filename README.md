@@ -44,8 +44,9 @@ WIP - work in progress. Its much more harder with free open-meteo API.
 `wfetch -h`
 
 <h2 align = "center"> Installation 🔝</h2>
+
 **Install from aur:**
-```shell 
+```shell
 yay -S weatherfetch
 ```
 
