@@ -38,6 +38,10 @@ WIP - work in progress. Its much more harder with free open-meteo API.
 `wfetch -h`
 
 <h2 align = "center"> Installation 🔝</h2>
+**Install from aur:**
+```shell 
+yay -S weatherfetch
+```
 
 **Build from source:**
 ```shell 
@@ -51,9 +55,5 @@ wfetch config && cp src/arts.yaml ~/.config/WeatherFetch/
 And dont forget switch coords in config to your!
 <br>
 
-**Or just download release and move it to one of** `$PATH` **dirs.**
+**Or just download release and move it to one of** `$PATH`
 
-<br>
-
-> [!TIP]
-> **Soon in aur.**
