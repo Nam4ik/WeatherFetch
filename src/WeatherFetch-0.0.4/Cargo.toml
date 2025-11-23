@@ -13,6 +13,7 @@ toml         = "0.7"
 clap         = { version = "4.4", features = ["derive"] }
 reqwest      = { version = "0.11", features = ["json"] }
 tokio        = { version = "1.0", features = ["full"] }
+chrono       = "0.4"
+termimage    = "1.2.2"
 clap_derive  = "4.5.49"
 serde_yml = "0.0.12"
-termimage = "1.2.2"
