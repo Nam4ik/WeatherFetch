@@ -12,7 +12,8 @@
 <br>
   
 **Written on rust fetch tool like Neofetch or FastFetch but with Weather.**
-This is my pet project.I am the sole developer, so if you encounter any issues or bugs, please inform me or create a pull request. 
+I am the sole developer, so if you encounter any issues or bugs, please inform me or create a pull request. 
+_P.S. Ts emojis not means proj vibecoded._ AI would not have abandoned the project for 9 months, and then sat down to finish writing xd 
 
 <br>
 <div align="center">
@@ -28,9 +29,9 @@ This is my pet project.I am the sole developer, so if you encounter any issues o
 > Not all of this fns can be implemented with openmeteo API 
 
 - Uses the free open-meteo API, which requires coordinates or configuration to function properly.
-- Displays images in the terminal. (WIP)
+- Displays images in the terminal. **WIP**
 - Provides various time intervals, including daily, hourly, and minute-by-minute updates, as well as current information.
-- Can send alerts. (WIP)
+- Can send alerts. **WIP**
 - In case of internet connectivity issues, it can download information from a cache.
 
 WIP - work in progress. Its much more harder with free open-meteo API.
@@ -48,6 +49,11 @@ WIP - work in progress. Its much more harder with free open-meteo API.
 **Install from aur:**
 ```shell
 yay -S weatherfetch
+```
+
+**Install from crates.io:**
+```shell
+cargo install WeatherFetch
 ```
 
 **Build from source:**
