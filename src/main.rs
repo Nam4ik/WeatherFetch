@@ -68,7 +68,8 @@ enum Commands {
     RebuildCache,
     CheckCfg,
     Credits, 
-    DebugOutput
+    DebugOutput,
+    GetArts
 }
 
 /// Micro config-validator, easily you can just `wfetch fetch` and see the error
@@ -295,10 +296,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("ASCII arts by www.asciiart.eu: Joan G. Stark");
             Ok(())
         }
+        Some(Commands::GetArts) => {
+            println!("Fetching arts.yaml for you.");
+            
+            // Create the config directory if it doesn't exist
+            let config_dir = format!("{}/.config/WeatherFetch", std::env::var("HOME")?);
+            std::fs::create_dir_all(&config_dir)?;
+            
+            let rt = tokio::runtime::Runtime::new()?;
+            let result: Result<(), Box<dyn std::error::Error>> = rt.block_on(async {
+                let client = reqwest::Client::new();
+                let url = "https://raw.githubusercontent.com/Nam4ik/WeatherFetch/refs/heads/main/src/arts.yaml";
+                let response = client.get(url).send().await?;
+                
+                if response.status().is_success() {
+                    let arts_yaml_content = response.text().await?;
+                    let arts_yaml_path = format!("{}/arts.yaml", config_dir);
+                    
+                    std::fs::write(&arts_yaml_path, arts_yaml_content)?;
+                    println!("arts.yaml successfully downloaded to: {}", arts_yaml_path);
+                    Ok(())
+                } else {
+                    Err(format!("Failed to download arts.yaml. Status: {}", response.status()).into())
+                }
+            });
+            result
+        }
+
         None => {
             println!("No subcommand specified.");
             println!("Run `wfetch -h` or `wfetch help`");
             println!("to see help message.");
+            println!("Run `wfetch get-arts` if you havent arts.yaml");
             Ok(())
         }
     }
